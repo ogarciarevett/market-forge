@@ -11,5 +11,5 @@ mod render;
 mod spec;
 
 pub use error::CodegenError;
-pub use render::render_venue;
+pub use render::{render_venue, VizOptions};
 pub use spec::{BookKind, Concurrency, Matching, VenueSpec};

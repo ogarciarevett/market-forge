@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ crate_name }} — Market Forge venue</title>
+  <!-- TradingView Lightweight Charts (UMD build, no npm install). -->
+  <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+  <style>
+    body { font-family: ui-monospace, monospace; margin: 0; background: #111; color: #ddd; }
+    header { padding: 8px 12px; border-bottom: 1px solid #333; }
+    .wrap { display: flex; gap: 12px; padding: 12px; }
+    #chart { flex: 1; height: 360px; }
+    .book { width: 220px; }
+    table { width: 100%; border-collapse: collapse; }
+    td { padding: 2px 6px; }
+    .bid { color: #4ade80; } .ask { color: #f87171; }
+    h3 { margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>{{ crate_name }}</strong> — {{ matching_label }} / {{ book_label }} / {{ concurrency_label }}
+    &nbsp; last: <span id="last">-</span>
+  </header>
+  <div class="wrap">
+    <div id="chart"></div>
+    <div class="book">
+      <h3 class="ask">Asks</h3><table id="asks"></table>
+      <h3 class="bid">Bids</h3><table id="bids"></table>
+    </div>
+  </div>
+  <script>
+    const chart = LightweightCharts.createChart(document.getElementById('chart'), {
+      layout: { background: { color: '#111' }, textColor: '#ddd' },
+      grid: { vertLines: { color: '#222' }, horzLines: { color: '#222' } },
+      timeScale: { secondsVisible: true, timeVisible: true },
+    });
+    const series = chart.addLineSeries({ color: '#38bdf8' });
+    const fill = (id, rows, cls) => {
+      document.getElementById(id).innerHTML = rows
+        .map(r => `<tr class="${cls}"><td>${r[0]}</td><td style="text-align:right">${r[1]}</td></tr>`)
+        .join('');
+    };
+    const ws = new WebSocket(`ws://${location.host}/ws`);
+    ws.onmessage = (ev) => {
+      const m = JSON.parse(ev.data);
+      document.getElementById('last').textContent = m.price;
+      series.update({ time: m.tick, value: parseFloat(m.price) });
+      fill('asks', m.asks, 'ask');
+      fill('bids', m.bids, 'bid');
+    };
+  </script>
+</body>
+</html>

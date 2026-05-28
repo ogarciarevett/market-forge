@@ -2,7 +2,7 @@
 //! plausible venue tree. (A full `cargo build` of a generated venue is exercised manually /
 //! in CI via `market-forge new`; see `.ai/specs/99-acceptance.md`.)
 
-use mf_codegen::{render_venue, BookKind, Concurrency, Matching, VenueSpec};
+use mf_codegen::{render_venue, BookKind, Concurrency, Matching, VenueSpec, VizOptions};
 use std::path::Path;
 
 const MATCHING: [Matching; 2] = [Matching::Fifo, Matching::ProRata];
@@ -22,8 +22,9 @@ fn every_combination_renders_a_complete_tree() {
                     concurrency: c,
                 };
                 let tmp = tempfile::tempdir().unwrap();
-                let written = render_venue(&spec, tmp.path(), Path::new("/sdk"))
-                    .unwrap_or_else(|e| panic!("render failed for {m:?}/{b:?}/{c:?}: {e}"));
+                let written =
+                    render_venue(&spec, tmp.path(), Path::new("/sdk"), VizOptions::default())
+                        .unwrap_or_else(|e| panic!("render failed for {m:?}/{b:?}/{c:?}: {e}"));
                 assert_eq!(written.len(), 6, "expected 6 files for {m:?}/{b:?}/{c:?}");
 
                 let lib =

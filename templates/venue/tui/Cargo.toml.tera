@@ -1,0 +1,13 @@
+[package]
+name = "{{ crate_name }}-tui"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "{{ crate_name }}-tui"
+path = "src/main.rs"
+
+[dependencies]
+{{ crate_name }}-engine = { path = "../engine" }
+rust_decimal = { version = "1", default-features = false }
+ratatui = "0.29"

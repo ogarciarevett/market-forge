@@ -1,0 +1,156 @@
+//! `{{ crate_name }}-tui` — a live terminal view of the generated venue (Market Forge v0.1).
+//!
+//! Renders the order-book depth, last trade price, a trade tape, and per-order match latency
+//! while a deterministic simulator streams orders into the engine. Press `q` to quit.
+
+use {{ crate_ident }}_engine::{Order, OrderId, Price, Qty, Side, Timestamp, Venue};
+use ratatui::crossterm::event::{self, Event, KeyCode};
+use ratatui::layout::{Constraint, Direction, Layout};
+use ratatui::style::{Color, Style};
+use ratatui::text::{Line, Span};
+use ratatui::widgets::{Block, Borders, Paragraph};
+use std::time::{Duration, Instant};
+
+/// Tiny deterministic order-flow simulator (xorshift — no external RNG crate).
+struct Sim {
+    state: u64,
+    next_id: u64,
+}
+
+impl Sim {
+    fn new() -> Self {
+        Sim {
+            state: 0x2545_f491_4f6c_dd1d,
+            next_id: 1,
+        }
+    }
+
+    fn next_u64(&mut self) -> u64 {
+        let mut x = self.state;
+        x ^= x << 13;
+        x ^= x >> 7;
+        x ^= x << 17;
+        self.state = x;
+        x
+    }
+
+    fn next_order(&mut self) -> Order {
+        let r = self.next_u64();
+        let side = if r & 1 == 0 { Side::Bid } else { Side::Ask };
+        let px = 95 + (r >> 1) % 11; // 95..=105
+        let qty = 1 + (r >> 8) % 5; // 1..=5
+        let id = self.next_id;
+        self.next_id += 1;
+        Order::new(
+            OrderId(id),
+            side,
+            Price::new((px as i64).into()),
+            Qty::new((qty as i64).into()),
+            Timestamp(0),
+        )
+    }
+}
+
+fn ladder(rows: &[(Price, Qty)], color: Color) -> Vec<Line<'static>> {
+    rows.iter()
+        .map(|(p, q)| {
+            Line::from(Span::styled(
+                format!("{p:>8}  x {q}"),
+                Style::default().fg(color),
+            ))
+        })
+        .collect()
+}
+
+fn main() -> std::io::Result<()> {
+    let mut terminal = ratatui::init();
+    let mut venue = Venue::new();
+    let mut sim = Sim::new();
+    for _ in 0..60 {
+        venue.submit(sim.next_order());
+    }
+
+    let mut tape: Vec<String> = Vec::new();
+    let mut last_price = "-".to_string();
+    let mut last_latency_us: u128 = 0;
+
+    loop {
+        // Stream a small batch of orders, timing the matcher.
+        for _ in 0..8 {
+            let order = sim.next_order();
+            let t0 = Instant::now();
+            let trades = venue.submit(order);
+            last_latency_us = t0.elapsed().as_micros();
+            for tr in &trades {
+                last_price = tr.price.to_string();
+                tape.push(format!("{} x {} @ {}", tr.taker, tr.qty, tr.price));
+            }
+        }
+        if tape.len() > 200 {
+            let drain = tape.len() - 200;
+            tape.drain(0..drain);
+        }
+
+        let bids = venue.depth(Side::Bid, 12);
+        let asks = venue.depth(Side::Ask, 12);
+        let spread = match (bids.first(), asks.first()) {
+            (Some((b, _)), Some((a, _))) => format!("bid {b}  /  ask {a}"),
+            _ => "no two-sided market".to_string(),
+        };
+        let tail: Vec<Line> = tape
+            .iter()
+            .rev()
+            .take(12)
+            .map(|s| Line::from(s.clone()))
+            .collect();
+
+        terminal.draw(|f| {
+            let rows = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([
+                    Constraint::Length(3),
+                    Constraint::Min(8),
+                    Constraint::Length(14),
+                ])
+                .split(f.area());
+
+            let header = Paragraph::new(format!(
+                "last {last_price}   {spread}   match latency {last_latency_us} us   [q to quit]"
+            ))
+            .block(Block::default().borders(Borders::ALL).title("{{ crate_name }} — {{ matching_label }} / {{ book_label }} / {{ concurrency_label }}"));
+            f.render_widget(header, rows[0]);
+
+            let books = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                .split(rows[1]);
+            f.render_widget(
+                Paragraph::new(ladder(&bids, Color::Green))
+                    .block(Block::default().borders(Borders::ALL).title("Bids")),
+                books[0],
+            );
+            f.render_widget(
+                Paragraph::new(ladder(&asks, Color::Red))
+                    .block(Block::default().borders(Borders::ALL).title("Asks")),
+                books[1],
+            );
+
+            f.render_widget(
+                Paragraph::new(tail)
+                    .block(Block::default().borders(Borders::ALL).title("Trade tape")),
+                rows[2],
+            );
+        })?;
+
+        if event::poll(Duration::from_millis(80))? {
+            if let Event::Key(k) = event::read()? {
+                if matches!(k.code, KeyCode::Char('q') | KeyCode::Esc) {
+                    break;
+                }
+            }
+        }
+    }
+
+    ratatui::restore();
+    Ok(())
+}

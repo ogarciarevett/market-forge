@@ -1,0 +1,118 @@
+//! `{{ crate_name }}-web` — a browser view of the generated venue (Market Forge v0.2).
+//!
+//! Serves a self-contained HTML page that plots the last trade price with TradingView
+//! Lightweight Charts and shows live depth, fed over a WebSocket while a deterministic
+//! simulator streams orders into the engine. No npm install required.
+
+use {{ crate_ident }}_engine::{Order, OrderId, Price, Qty, Side, Timestamp, Venue};
+use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
+use axum::response::{Html, IntoResponse};
+use axum::routing::get;
+use axum::Router;
+use std::time::Duration;
+
+const INDEX_HTML: &str = include_str!("../static/index.html");
+
+/// Deterministic xorshift order-flow simulator (no external RNG crate).
+struct Sim {
+    state: u64,
+    next_id: u64,
+}
+
+impl Sim {
+    fn new() -> Self {
+        Sim {
+            state: 0x2545_f491_4f6c_dd1d,
+            next_id: 1,
+        }
+    }
+
+    fn next_u64(&mut self) -> u64 {
+        let mut x = self.state;
+        x ^= x << 13;
+        x ^= x >> 7;
+        x ^= x << 17;
+        self.state = x;
+        x
+    }
+
+    fn next_order(&mut self) -> Order {
+        let r = self.next_u64();
+        let side = if r & 1 == 0 { Side::Bid } else { Side::Ask };
+        let px = 95 + (r >> 1) % 11;
+        let qty = 1 + (r >> 8) % 5;
+        let id = self.next_id;
+        self.next_id += 1;
+        Order::new(
+            OrderId(id),
+            side,
+            Price::new((px as i64).into()),
+            Qty::new((qty as i64).into()),
+            Timestamp(0),
+        )
+    }
+}
+
+fn depth_json(venue: &Venue, side: Side) -> Vec<[String; 2]> {
+    venue
+        .depth(side, 12)
+        .into_iter()
+        .map(|(p, q)| [p.to_string(), q.to_string()])
+        .collect()
+}
+
+async fn index() -> impl IntoResponse {
+    Html(INDEX_HTML)
+}
+
+async fn ws_handler(ws: WebSocketUpgrade) -> impl IntoResponse {
+    ws.on_upgrade(stream)
+}
+
+async fn stream(mut socket: WebSocket) {
+    let mut venue = Venue::new();
+    let mut sim = Sim::new();
+    for _ in 0..60 {
+        venue.submit(sim.next_order());
+    }
+    let mut last_price = "100".to_string();
+    let mut tick: u64 = 0;
+    let mut interval = tokio::time::interval(Duration::from_millis(250));
+
+    loop {
+        interval.tick().await;
+        for _ in 0..20 {
+            let trades = venue.submit(sim.next_order());
+            if let Some(t) = trades.last() {
+                last_price = t.price.to_string();
+            }
+        }
+        tick += 1;
+        let payload = serde_json::json!({
+            "tick": tick,
+            "price": last_price,
+            "bids": depth_json(&venue, Side::Bid),
+            "asks": depth_json(&venue, Side::Ask),
+        });
+        if socket
+            .send(Message::Text(payload.to_string()))
+            .await
+            .is_err()
+        {
+            break; // client disconnected
+        }
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    let app = Router::new()
+        .route("/", get(index))
+        .route("/ws", get(ws_handler));
+    let addr = "127.0.0.1:8080";
+    let listener = tokio::net::TcpListener::bind(addr)
+        .await
+        .expect("bind 127.0.0.1:8080");
+    println!("{{ crate_name }}-web serving on http://{addr}");
+    axum::serve(listener, app).await.expect("server error");
+}

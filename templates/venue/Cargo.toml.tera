@@ -1,6 +1,14 @@
 [workspace]
 resolver = "2"
-members = ["crates/engine"]
+members = [
+    "crates/engine",
+{%- if with_tui %}
+    "crates/tui",
+{%- endif %}
+{%- if with_web %}
+    "crates/web",
+{%- endif %}
+]
 
 [workspace.package]
 version = "0.1.0"

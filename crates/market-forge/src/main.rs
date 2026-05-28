@@ -7,7 +7,7 @@ mod wizard;
 
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
-use mf_codegen::{matrix, render_venue, BookKind, Concurrency, Matching, VenueSpec};
+use mf_codegen::{matrix, render_venue, BookKind, Concurrency, Matching, VenueSpec, VizOptions};
 use std::path::{Path, PathBuf};
 
 #[derive(Parser)]
@@ -50,6 +50,12 @@ struct NewArgs {
     /// Concurrency model: single-thread | disruptor. Prompts if omitted.
     #[arg(long)]
     concurrency: Option<String>,
+    /// Also generate the `<venue>-tui` ratatui terminal UI (CLA-148).
+    #[arg(long)]
+    tui: bool,
+    /// Also generate the `<venue>-web` axum + TradingView Lightweight Charts UI (CLA-149).
+    #[arg(long)]
+    web: bool,
     /// Output directory (defaults to ./<name>).
     #[arg(long)]
     out: Option<PathBuf>,
@@ -100,8 +106,12 @@ fn run_new(args: NewArgs) -> Result<()> {
         .clone()
         .unwrap_or_else(|| PathBuf::from(&spec.name));
     let sdk_path = args.sdk_path.clone().unwrap_or_else(default_sdk_path);
+    let viz = VizOptions {
+        tui: args.tui,
+        web: args.web,
+    };
 
-    let written = render_venue(&spec, &out_dir, &sdk_path)
+    let written = render_venue(&spec, &out_dir, &sdk_path, viz)
         .with_context(|| format!("failed to generate venue in {}", out_dir.display()))?;
 
     println!(
