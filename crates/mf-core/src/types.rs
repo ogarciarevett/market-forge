@@ -92,6 +92,10 @@ impl Qty {
 impl std::ops::Sub for Qty {
     type Output = Qty;
     fn sub(self, rhs: Qty) -> Qty {
+        // A well-formed matcher only ever subtracts a fill ≤ the remaining quantity. A
+        // negative result would mean a resting order with negative size silently staying in
+        // the book, so guard it in debug builds.
+        debug_assert!(self.0 >= rhs.0, "Qty underflow: {} - {}", self.0, rhs.0);
         Qty(self.0 - rhs.0)
     }
 }

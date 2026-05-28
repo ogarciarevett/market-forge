@@ -244,4 +244,19 @@ mod tests {
         let tmp = tempfile::tempdir().unwrap();
         assert!(render_venue(&s, tmp.path(), Path::new("/sdk"), VizOptions::default()).is_err());
     }
+
+    #[test]
+    fn rejects_path_traversal_and_injection_names() {
+        // Locks the invariant that makes codegen path/template injection impossible: the name
+        // charset blocks `/`, `..`, quotes and angle brackets before any file is written.
+        for bad in ["../../etc", "a/b", "a\"b", "a<b>", "a b", "1abc", ""] {
+            let mut s = spec();
+            s.name = bad.into();
+            let tmp = tempfile::tempdir().unwrap();
+            assert!(
+                render_venue(&s, tmp.path(), Path::new("/sdk"), VizOptions::default()).is_err(),
+                "name {bad:?} should be rejected"
+            );
+        }
+    }
 }

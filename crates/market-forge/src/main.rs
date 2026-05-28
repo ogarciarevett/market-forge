@@ -101,15 +101,12 @@ fn run_new(args: NewArgs) -> Result<()> {
         eprintln!("note: {note}");
     }
 
-    let out_dir = args
-        .out
-        .clone()
-        .unwrap_or_else(|| PathBuf::from(&spec.name));
-    let sdk_path = args.sdk_path.clone().unwrap_or_else(default_sdk_path);
     let viz = VizOptions {
         tui: args.tui,
         web: args.web,
     };
+    let out_dir = args.out.unwrap_or_else(|| PathBuf::from(&spec.name));
+    let sdk_path = args.sdk_path.unwrap_or_else(default_sdk_path);
 
     let written = render_venue(&spec, &out_dir, &sdk_path, viz)
         .with_context(|| format!("failed to generate venue in {}", out_dir.display()))?;

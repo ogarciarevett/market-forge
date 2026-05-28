@@ -59,7 +59,7 @@ Master inventory of crates the generator may emit. All are permissively licensed
 | `rust_decimal` | MIT | active | deterministic money arithmetic |
 | `fixed` | MIT/Apache-2.0 | active | fixed-point arithmetic |
 | `ahash` | MIT/Apache-2.0 | active | fast non-crypto hash |
-| `fxhash` | MIT/Apache-2.0 | stable | fast non-crypto hash |
+| `fxhash` | MIT/Apache-2.0 | ⚠ unmaintained (RUSTSEC-2025-0057) | fast non-crypto hash — **do not emit**; prefer `ahash`/`rustc-hash`. Present only transitively via `inquire` (dev CLI). |
 | `bumpalo` | MIT/Apache-2.0 | active | bump/arena allocator |
 | `typed-arena` | MIT | stable | typed arena allocator |
 | `slab` | MIT | active | slab allocator / id reuse |

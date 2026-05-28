@@ -69,9 +69,13 @@ impl<E: MatchingEngine> DisruptorRunner<E> {
         while self.consumed < self.published {
             let seq = self.consumed + 1;
             let idx = (seq as usize) & self.mask;
-            if let Some(order) = self.slots[idx].take() {
-                trades.extend(self.engine.submit(order));
-            }
+            // Invariant: a slot is always published before the consumer cursor reaches it, so a
+            // `None` here is a programming error, not a runtime condition — fail loudly rather
+            // than silently skip (which would lose an order).
+            let order = self.slots[idx]
+                .take()
+                .expect("disruptor invariant: slot must be populated when the consumer reaches it");
+            trades.extend(self.engine.submit(order));
             self.consumed = seq;
         }
         trades

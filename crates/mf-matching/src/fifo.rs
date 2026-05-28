@@ -43,7 +43,11 @@ impl<B: OrderBook> MatchingEngine for FifoMatcher<B> {
                 break;
             };
             let fill = taker.qty.min(maker_qty);
-            self.book.reduce(maker_id, fill);
+            let reduced = self.book.reduce(maker_id, fill);
+            debug_assert!(
+                reduced,
+                "reduce on a maker we just read from the book failed"
+            );
             let ts = self.next_ts();
             trades.push(Trade {
                 taker: taker.id,

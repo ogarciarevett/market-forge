@@ -25,16 +25,21 @@ pub trait OrderBook {
 
     /// Reduce resting order `id` by `qty`, removing it when it reaches zero.
     ///
-    /// Returns `true` if the order existed and was reduced/removed.
+    /// Returns `true` if the order existed and was reduced/removed. Callers on the matching
+    /// path must check this: a `false` means the book and matcher disagree about resting
+    /// liquidity, which would otherwise let a taker fill against nothing.
+    #[must_use]
     fn reduce(&mut self, id: OrderId, qty: Qty) -> bool;
 
     /// Borrow a resting order by id.
     fn get(&self, id: OrderId) -> Option<&Order>;
 
     /// Number of resting orders across both sides.
+    #[must_use]
     fn len(&self) -> usize;
 
     /// `true` when the book holds no resting orders.
+    #[must_use]
     fn is_empty(&self) -> bool {
         self.len() == 0
     }

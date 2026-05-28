@@ -9,8 +9,9 @@ pub fn pick_matching() -> Result<Matching> {
     let choice =
         Select::new("Matching algorithm", vec!["FIFO (price-time)", "Pro-Rata"]).prompt()?;
     Ok(match choice {
+        "FIFO (price-time)" => Matching::Fifo,
         "Pro-Rata" => Matching::ProRata,
-        _ => Matching::Fifo,
+        other => unreachable!("inquire returned an unlisted matching choice: {other}"),
     })
 }
 
@@ -22,8 +23,9 @@ pub fn pick_book() -> Result<BookKind> {
     )
     .prompt()?;
     Ok(match choice {
+        "BTreeMap" => BookKind::BTreeMap,
         "Bitmap (bounded-tick)" => BookKind::Bitmap,
-        _ => BookKind::BTreeMap,
+        other => unreachable!("inquire returned an unlisted book choice: {other}"),
     })
 }
 
@@ -35,7 +37,8 @@ pub fn pick_concurrency() -> Result<Concurrency> {
     )
     .prompt()?;
     Ok(match choice {
+        "Single-thread (testing)" => Concurrency::SingleThread,
         "LMAX/DMAX Disruptor" => Concurrency::Disruptor,
-        _ => Concurrency::SingleThread,
+        other => unreachable!("inquire returned an unlisted concurrency choice: {other}"),
     })
 }

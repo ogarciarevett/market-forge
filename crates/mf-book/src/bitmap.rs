@@ -119,10 +119,15 @@ impl BitmapBook {
 impl OrderBook for BitmapBook {
     fn insert(&mut self, order: Order) {
         let Some(tick) = self.price_to_tick(order.price) else {
-            // Out of the configured tick range: the venue must size its book to its market.
-            // Dropping silently would lose orders, so we panic in debug and no-op in release.
-            debug_assert!(false, "price {} outside bitmap tick range", order.price);
-            return;
+            // Out of the configured tick range: a bounded book MUST be sized to its market.
+            // Silently dropping the order would lose liquidity, so we fail loudly — widen the
+            // TickConfig (min_price / tick_size / num_ticks) to cover the price range.
+            panic!(
+                "order price {} is outside the bitmap tick range [{}, {}); widen TickConfig",
+                order.price,
+                self.cfg.min_price,
+                self.cfg.min_price + Decimal::from(self.cfg.num_ticks) * self.cfg.tick_size
+            );
         };
         self.index.insert(order.id, (order.side, tick));
         let (bits, levels) = match order.side {
@@ -200,22 +205,44 @@ impl OrderBook for BitmapBook {
     }
 
     fn depth(&self, side: Side, max_levels: usize) -> Vec<(Price, Qty)> {
-        let mut out = Vec::new();
-        // Walk ticks best-first using the occupancy bitmap.
-        let ticks: Vec<u32> = {
-            let raw = self.bits(side);
-            let mut v: Vec<u32> = (0..self.cfg.num_ticks)
-                .filter(|&t| raw[t as usize / 64] & (1u64 << (t % 64)) != 0)
-                .collect();
-            if side == Side::Bid {
-                v.reverse();
-            }
-            v
-        };
-        for tick in ticks.into_iter().take(max_levels) {
+        // Walk the occupancy bitmap best-first, word by word, stopping once we have
+        // `max_levels` levels — O(max_levels + words scanned), not O(num_ticks).
+        let mut out = Vec::with_capacity(max_levels);
+        let bits = self.bits(side);
+        let push_tick = |out: &mut Vec<(Price, Qty)>, tick: u32| {
             if let Some(level) = self.levels(side).get(&tick) {
                 let total = level.iter().fold(Qty::ZERO, |acc, o| acc + o.qty);
                 out.push((self.tick_to_price(tick), total));
+            }
+        };
+        match side {
+            // Asks: lowest price first → low words first, low bits first.
+            Side::Ask => {
+                for (w, &word) in bits.iter().enumerate() {
+                    let mut bits_left = word;
+                    while bits_left != 0 && out.len() < max_levels {
+                        let b = bits_left.trailing_zeros();
+                        push_tick(&mut out, (w * 64) as u32 + b);
+                        bits_left &= bits_left - 1; // clear lowest set bit
+                    }
+                    if out.len() >= max_levels {
+                        break;
+                    }
+                }
+            }
+            // Bids: highest price first → high words first, high bits first.
+            Side::Bid => {
+                for (w, &word) in bits.iter().enumerate().rev() {
+                    let mut bits_left = word;
+                    while bits_left != 0 && out.len() < max_levels {
+                        let b = 63 - bits_left.leading_zeros();
+                        push_tick(&mut out, (w * 64) as u32 + b);
+                        bits_left &= !(1u64 << b); // clear highest set bit
+                    }
+                    if out.len() >= max_levels {
+                        break;
+                    }
+                }
             }
         }
         out
@@ -277,6 +304,30 @@ mod tests {
                 (Price::new(dec!(100)), Qty::new(dec!(7))),
                 (Price::new(dec!(99)), Qty::new(dec!(4))),
             ]
+        );
+    }
+
+    #[test]
+    fn depth_best_first_walk_spans_multiple_words() {
+        // Occupied ticks across different 64-bit words must come out best-first and capped.
+        let mut b = BitmapBook::new(cfg());
+        b.insert(ord(1, Side::Bid, 10, 1, 0));
+        b.insert(ord(2, Side::Bid, 130, 2, 1)); // 3rd word
+        b.insert(ord(3, Side::Bid, 200, 3, 2)); // 4th word
+        let d = b.depth(Side::Bid, 2);
+        assert_eq!(
+            d,
+            vec![
+                (Price::new(dec!(200)), Qty::new(dec!(3))),
+                (Price::new(dec!(130)), Qty::new(dec!(2))),
+            ]
+        );
+        // Asks come out lowest-first.
+        b.insert(ord(4, Side::Ask, 50, 5, 3));
+        b.insert(ord(5, Side::Ask, 80, 6, 4));
+        assert_eq!(
+            b.depth(Side::Ask, 1),
+            vec![(Price::new(dec!(50)), Qty::new(dec!(5)))]
         );
     }
 

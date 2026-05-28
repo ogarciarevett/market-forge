@@ -40,6 +40,7 @@ impl<B: OrderBook> ProRataMatcher<B> {
 /// Allocate `fill` across `level` (each `(id, resting_qty)`) in proportion to resting size.
 /// Returns the per-order allocation aligned to `level`. The allocations sum to `fill` (modulo
 /// the final-remainder guarantee) and never exceed any order's resting quantity.
+#[inline]
 fn allocate(level: &[(OrderId, Qty)], fill: Decimal) -> Vec<Decimal> {
     let total: Decimal = level.iter().map(|(_, q)| q.0).sum();
     let mut out = Vec::with_capacity(level.len());
@@ -90,7 +91,11 @@ impl<B: OrderBook> MatchingEngine for ProRataMatcher<B> {
                 if alloc.is_zero() {
                     continue;
                 }
-                self.book.reduce(*id, Qty(*alloc));
+                let reduced = self.book.reduce(*id, Qty(*alloc));
+                debug_assert!(
+                    reduced,
+                    "reduce on a maker we just read from the level failed"
+                );
                 let ts = self.next_ts();
                 trades.push(Trade {
                     taker: taker.id,
@@ -157,6 +162,26 @@ mod tests {
         let total: Decimal = trades.iter().map(|t| t.qty.0).sum();
         assert_eq!(total, dec!(3));
         assert!(m.book().is_empty());
+    }
+
+    #[test]
+    fn fractional_split_conserves_quantity_exactly() {
+        // 1 unit split across three equal resting orders → non-terminating thirds, but the
+        // applied fills must still sum to exactly 1 (no dust created or lost).
+        let mut m = ProRataMatcher::new(BTreeBook::new());
+        m.submit(ord(1, Side::Ask, 100, 1));
+        m.submit(ord(2, Side::Ask, 100, 1));
+        m.submit(ord(3, Side::Ask, 100, 1));
+        let taker = Order::new(
+            OrderId(4),
+            Side::Bid,
+            Price::new(dec!(100)),
+            Qty::new(dec!(1)),
+            Timestamp(0),
+        );
+        let trades = m.submit(taker);
+        let total: Decimal = trades.iter().map(|t| t.qty.0).sum();
+        assert_eq!(total, dec!(1)); // exact conservation despite 1/3 splits
     }
 
     #[test]
