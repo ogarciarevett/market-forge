@@ -1,0 +1,18 @@
+[package]
+name = "mf-concurrency"
+description = "Market Forge concurrency runners (single-thread, LMAX/DMAX Disruptor ring buffer)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+mf-core.workspace = true
+
+[dev-dependencies]
+mf-book.workspace = true
+mf-matching.workspace = true
+rust_decimal.workspace = true
+rust_decimal_macros.workspace = true

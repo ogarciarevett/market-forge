@@ -1,0 +1,16 @@
+[package]
+name = "mf-book"
+description = "Market Forge order-book data structures (BTreeMap, bitmap)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+mf-core.workspace = true
+rust_decimal.workspace = true
+
+[dev-dependencies]
+rust_decimal_macros.workspace = true
