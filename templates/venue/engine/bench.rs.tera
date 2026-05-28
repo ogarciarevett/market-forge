@@ -1,0 +1,27 @@
+//! Criterion throughput benchmark for the generated venue (Market Forge).
+
+use criterion::{criterion_group, criterion_main, Criterion};
+use {{ crate_ident }}_engine::{Order, OrderId, Price, Qty, Side, Timestamp, Venue};
+use std::hint::black_box;
+
+fn bench_submit(c: &mut Criterion) {
+    c.bench_function("submit_alternating_cross", |b| {
+        b.iter(|| {
+            let mut v = Venue::new();
+            for i in 0..1_000u64 {
+                let side = if i % 2 == 0 { Side::Bid } else { Side::Ask };
+                let order = Order::new(
+                    OrderId(i + 1),
+                    side,
+                    Price::new(100.into()),
+                    Qty::new(1.into()),
+                    Timestamp(0),
+                );
+                black_box(v.submit(black_box(order)));
+            }
+        });
+    });
+}
+
+criterion_group!(benches, bench_submit);
+criterion_main!(benches);

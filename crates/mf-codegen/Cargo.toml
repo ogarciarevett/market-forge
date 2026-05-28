@@ -1,0 +1,17 @@
+[package]
+name = "mf-codegen"
+description = "Market Forge code generation: VenueSpec, compatibility matrix, Tera rendering."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+serde.workspace = true
+thiserror.workspace = true
+tera = { version = "1", default-features = false }
+
+[dev-dependencies]
+tempfile = "3"

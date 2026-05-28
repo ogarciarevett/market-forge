@@ -1,0 +1,19 @@
+[package]
+name = "{{ crate_name }}-engine"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+mf-core = { path = "{{ sdk_path }}/mf-core" }
+mf-book = { path = "{{ sdk_path }}/mf-book" }
+mf-matching = { path = "{{ sdk_path }}/mf-matching" }
+mf-concurrency = { path = "{{ sdk_path }}/mf-concurrency" }
+rust_decimal = { version = "1", default-features = false }
+
+[dev-dependencies]
+rust_decimal_macros = "1"
+criterion = "0.5"
+
+[[bench]]
+name = "match"
+harness = false

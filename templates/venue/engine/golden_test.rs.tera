@@ -1,0 +1,56 @@
+//! Golden behavioral tests for the generated venue (Market Forge).
+
+use {{ crate_ident }}_engine::{Order, OrderId, Price, Qty, Side, Timestamp, Venue};
+use rust_decimal_macros::dec;
+
+fn ord(id: u64, side: Side, price: i64, qty: i64) -> Order {
+    Order::new(
+        OrderId(id),
+        side,
+        Price::new(price.into()),
+        Qty::new(qty.into()),
+        Timestamp(0),
+    )
+}
+
+#[test]
+fn resting_order_does_not_cross_empty_book() {
+    let mut v = Venue::new();
+    assert!(v.submit(ord(1, Side::Bid, 100, 5)).is_empty());
+}
+
+#[test]
+fn full_fill_at_resting_price_with_improvement() {
+    let mut v = Venue::new();
+    v.submit(ord(1, Side::Ask, 100, 5));
+    let trades = v.submit(ord(2, Side::Bid, 101, 5));
+    assert_eq!(trades.len(), 1);
+    assert_eq!(trades[0].price, Price::new(dec!(100))); // taker gets price improvement
+    assert_eq!(trades[0].qty, Qty::new(dec!(5)));
+}
+
+{% if matching == "fifo" %}
+#[test]
+fn fifo_fills_oldest_resting_order_first() {
+    let mut v = Venue::new();
+    v.submit(ord(1, Side::Ask, 100, 3)); // older
+    v.submit(ord(2, Side::Ask, 100, 3)); // newer
+    let trades = v.submit(ord(3, Side::Bid, 100, 4));
+    assert_eq!(trades.len(), 2);
+    assert_eq!(trades[0].maker, OrderId(1)); // time priority
+    assert_eq!(trades[0].qty, Qty::new(dec!(3)));
+    assert_eq!(trades[1].maker, OrderId(2));
+    assert_eq!(trades[1].qty, Qty::new(dec!(1)));
+}
+{% endif %}
+{% if matching == "prorata" %}
+#[test]
+fn prorata_allocates_in_proportion_to_size() {
+    let mut v = Venue::new();
+    v.submit(ord(1, Side::Ask, 100, 10)); // 25%
+    v.submit(ord(2, Side::Ask, 100, 30)); // 75%
+    let trades = v.submit(ord(3, Side::Bid, 100, 20));
+    let total: rust_decimal::Decimal = trades.iter().map(|t| t.qty.0).sum();
+    assert_eq!(total, dec!(20)); // quantity conserved
+}
+{% endif %}

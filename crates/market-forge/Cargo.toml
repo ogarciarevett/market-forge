@@ -1,0 +1,20 @@
+[package]
+name = "market-forge"
+description = "Interactive CLI that generates a tailored matching-engine venue."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "market-forge"
+path = "src/main.rs"
+
+[dependencies]
+mf-codegen.workspace = true
+clap = { version = "4", features = ["derive"] }
+inquire = "0.7"
+anyhow = "1"
+toml = "0.8"
