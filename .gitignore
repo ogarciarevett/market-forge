@@ -10,6 +10,17 @@
 # Dependencies / tooling (the sync script runs on Bun).
 node_modules/
 
+# Rust build artifacts.
+/target/
+**/target/
+Cargo.lock.orig
+
+# Generated example venues are reproducible from templates; the snapshot under
+# crates/mf-codegen/tests/ is committed, ad-hoc generations are not.
+/tmp-venue/
+/my-clob/
+/my-venue/
+
 # Claude Code per-developer local settings (not shared).
 .claude/settings.local.json
 

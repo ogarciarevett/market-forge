@@ -1,0 +1,27 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.94"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ogarciarevett/market-forge"
+authors = ["Omar Garcia <ogarciarevett@gmail.com>"]
+
+[workspace.dependencies]
+mf-core = { path = "crates/mf-core", version = "0.1.0" }
+mf-book = { path = "crates/mf-book", version = "0.1.0" }
+mf-matching = { path = "crates/mf-matching", version = "0.1.0" }
+mf-concurrency = { path = "crates/mf-concurrency", version = "0.1.0" }
+mf-codegen = { path = "crates/mf-codegen", version = "0.1.0" }
+
+rust_decimal = { version = "1", default-features = false, features = ["serde"] }
+rust_decimal_macros = "1"
+serde = { version = "1", features = ["derive"] }
+thiserror = "2"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
