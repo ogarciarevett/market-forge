@@ -7,7 +7,7 @@ parallel stages of `.ai/pipeline.md`.
 > ⚠️ **Claude-Code-only — like `/graphify`.** The `Workflow` tool does not exist in
 > Codex, Gemini CLI, or opencode. In those tools, run the same stage with their native
 > sub-agents (see the "Parallel work" section of `.ai/pipeline.md`). These scripts are
-> therefore the single source of truth and live ONLY here — `sync-ai-docs.ts` does not
+> therefore the single source of truth and live ONLY here — the `cargo xtask sync-ai` generator does not
 > copy them into any per-tool tree; the `Workflow` tool reads them by path.
 
 ## How to run

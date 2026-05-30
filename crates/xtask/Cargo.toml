@@ -7,7 +7,7 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/ogarciarevett/market-forge"
 authors = ["Omar Garcia <ogarciarevett@gmail.com>"]
 publish = false
-description = "Dev-only task runner: Rust port of scripts/sync-ai-docs.ts (byte-parity)."
+description = "Dev-only Rust task runner: agent-doc sync + catalog lint for market-forge."
 
 [[bin]]
 name = "xtask"

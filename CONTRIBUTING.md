@@ -19,10 +19,19 @@ a specific upstream improvement, note it in your PR description and the NOTICE f
 ## Dev setup
 
 ```bash
-rustup show                      # toolchain pinned by rust-toolchain.toml (1.94)
+rustup show                            # toolchain pinned by rust-toolchain.toml (1.94)
 cargo build --workspace
 cargo test --workspace
+git config core.hooksPath .githooks    # enable the agent-doc drift pre-commit hook
 ```
+
+The repo is **pure Rust** — there is no Node/Bun toolchain. Dev chores run through
+`cargo xtask`:
+
+- `cargo xtask sync-ai` — regenerate the per-tool agent docs (`AGENTS.md`, `CLAUDE.md`, …)
+  from the hand-edited sources under `.ai/`.
+- `cargo xtask check-sync` — regenerate, then fail on drift (what the pre-commit hook runs).
+- `cargo xtask lint-catalog` — lint `docs/catalog/` against `docs/standards.md` §2.
 
 ## Definition of Done (every change)
 
@@ -31,6 +40,7 @@ cargo test --workspace
 - `cargo fmt --all --check` clean
 - `cargo test --workspace` green; SDK/engine crates ≥ 80% covered
 - `cargo audit` clean (no open RUSTSEC advisories)
+- If you edited `.ai/` sources, regenerate agent docs (`cargo xtask check-sync` clean)
 - If you touched the generator, regenerate a sample venue and prove it
   `cargo build` + `cargo test` + `cargo bench` green.
 - Money/size use `rust_decimal::Decimal`, never `f64`.

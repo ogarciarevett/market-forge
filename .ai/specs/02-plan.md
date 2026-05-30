@@ -18,9 +18,9 @@ Files: `Cargo.toml` (workspace), `LICENSE-MIT`, `LICENSE-APACHE`, `NOTICE.md`,
 - **Acceptance:** `cargo build` + `cargo test` green on `mf-core`; clippy/fmt clean.
 
 ### S1 — Standards + crates inventory (CLA-146)
-Files: `docs/standards.md`, `scripts/lint-catalog.sh`.
+Files: `docs/standards.md`, `crates/xtask/src/catalog.rs`.
 - Mermaid conventions, plain-language style, crates inventory (license/health/audit), lint.
-- **Acceptance:** `scripts/lint-catalog.sh` runs; `cargo audit` clean.
+- **Acceptance:** `cargo xtask lint-catalog` runs; `cargo audit` clean.
 
 ### S2 — Architecture spike (CLA-136)
 Files: `docs/architecture.md`.

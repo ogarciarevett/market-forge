@@ -19,6 +19,6 @@ and it **proposes, never applies** — a human reviews the output and applies wh
      (or sequentially), per the "Parallel work" section of `.ai/pipeline.md`.
 3. **Report:** write `.ai/specs/97-evolution.md` (drift table + concrete proposed patches to
    `.ai/` sources only, never generated files) with a one-line verdict.
-4. **Hand off:** stop there. Applying a patch = edit the `.ai/` source, then `bun run sync:ai`.
+4. **Hand off:** stop there. Applying a patch = edit the `.ai/` source, then `cargo xtask sync-ai`.
 
 See the `evolve` skill for full detail and the report template.

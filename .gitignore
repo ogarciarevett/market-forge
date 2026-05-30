@@ -1,4 +1,4 @@
-# Local, per-developer agent working log — seeded from .ai/memory.example.md by `bun run sync:ai`.
+# Local, per-developer agent working log — seeded from .ai/memory.example.md by `cargo xtask sync-ai`.
 # Durable decisions go in commits / docs/adr, never here. See .ai/context.md "Memory protocol".
 .ai/memory.md
 
@@ -6,9 +6,6 @@
 .env
 .env.*
 !.env.example
-
-# Dependencies / tooling (the sync script runs on Bun).
-node_modules/
 
 # Rust build artifacts.
 /target/

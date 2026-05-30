@@ -1,6 +1,6 @@
 ---
 name: project-bootstrap
-description: Turns the blank cross-ai-template into a project-specific setup. Interviews the user for project, locked stack, Definition-of-Done commands, and hard rules, then fills .ai/context.md (and optionally seeds .ai/specs/00-requirements.md) and regenerates every tool's config with `bun run sync:ai`. Use once, right after starting from the template, while .ai/context.md still has `<!-- FILL -->` placeholders, or when the user says "bootstrap", "set up this template", or "/bootstrap".
+description: Turns the blank cross-ai-template into a project-specific setup. Interviews the user for project, locked stack, Definition-of-Done commands, and hard rules, then fills .ai/context.md (and optionally seeds .ai/specs/00-requirements.md) and regenerates every tool's config with `cargo xtask sync-ai`. Use once, right after starting from the template, while .ai/context.md still has `<!-- FILL -->` placeholders, or when the user says "bootstrap", "set up this template", or "/bootstrap".
 ---
 
 # Project Bootstrap
@@ -60,7 +60,7 @@ the skeleton). Otherwise tell the user to run `/spec` next. For a full spec now,
 `spec-driven-development`.
 
 ### 5. Regenerate
-Run `bun run sync:ai` (or `bun scripts/sync-ai-docs.ts`). This rewrites `AGENTS.md`,
+Run `cargo xtask sync-ai`. This rewrites `AGENTS.md`,
 `CLAUDE.md`, `GEMINI.md`, `.ai/generated/rules.mdc`, and every tool mirror from the new sources.
 
 ### 6. Confirm & hand off

@@ -71,7 +71,7 @@ Materialize the drift list into the report below. One row per drift item.
 # Evolution proposals — <YYYY-MM-DD>
 
 Source: `/evolve`. Reality map: <graphify-out/graph.json | direct scan>.
-These are PROPOSALS. A human reviews and applies; then run `bun run sync:ai`.
+These are PROPOSALS. A human reviews and applies; then run `cargo xtask sync-ai`.
 
 ## Drift table
 | # | Dimension | Where (ground truth) | Observed (code) | Documented (.ai/) | Target | Confidence |
@@ -93,7 +93,7 @@ These are PROPOSALS. A human reviews and applies; then run `bun run sync:ai`.
 ### 4. Hand off
 
 Stop after writing the report. Tell the human what's there and that applying any patch
-means editing the `.ai/` source then running `bun run sync:ai` (the pre-commit drift gate
+means editing the `.ai/` source then running `cargo xtask sync-ai` (the pre-commit drift gate
 will confirm the generated docs regenerated cleanly). Record any environment quirk you hit
 in `.ai/memory.md`.
 

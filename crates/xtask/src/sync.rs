@@ -1,7 +1,5 @@
-//! Core generator — the Rust port of `scripts/sync-ai-docs.ts`.
-//!
-//! Reads the hand-edited sources under `.ai/` and materializes every per-tool
-//! agent artifact. Output is byte-for-byte identical to the TS reference.
+//! Core generator — materializes every per-tool agent artifact from the
+//! hand-edited sources under `.ai/` (the project's single source of truth).
 
 use std::fs;
 use std::io;
@@ -9,7 +7,7 @@ use std::path::{Path, PathBuf};
 
 use crate::transforms::{split_frontmatter, toml_basic, toml_multiline, trim, trim_end};
 
-/// Counts surfaced in the final summary (mirrors the TS console output).
+/// Counts surfaced in the final summary (printed after a sync run).
 pub struct Summary {
     all_inline: bool,
     commands: usize,
@@ -21,11 +19,9 @@ pub struct Summary {
 impl Summary {
     pub fn print(&self) {
         if self.all_inline {
-            println!("sync-ai-docs: regenerated (contract forced --all-inline)");
+            println!("sync-ai: regenerated (contract forced --all-inline)");
         } else {
-            println!(
-                "sync-ai-docs: regenerated (AGENTS/cursor inline; CLAUDE/GEMINI @import stubs)"
-            );
+            println!("sync-ai: regenerated (AGENTS/cursor inline; CLAUDE/GEMINI @import stubs)");
         }
         println!(
             "  docs    \u{2192} AGENTS.md, CLAUDE.md, GEMINI.md, .ai/generated/rules.mdc (+ .cursor symlink)"
@@ -74,7 +70,7 @@ pub fn run(root: &Path, all_inline: bool) -> io::Result<Summary> {
         "## Memory",
         "",
         "Shared working log: `.ai/memory.md` \u{2014} LOCAL and gitignored (seed from",
-        "`.ai/memory.example.md`; `bun run sync:ai` seeds it for you). It is not inlined here;",
+        "`.ai/memory.example.md`; `cargo xtask sync-ai` seeds it for you). It is not inlined here;",
         "tools that resolve imports pull it in, and opencode reads it directly:",
         "",
         "@.ai/memory.md",
@@ -234,7 +230,7 @@ fn read(path: &Path) -> io::Result<String> {
     fs::read_to_string(path)
 }
 
-/// TS `writeReal`: mkdir -p parent, drop a pre-existing symlink, write file.
+/// `mkdir -p` parent, drop a pre-existing symlink, then write the file.
 fn write_real(path: &Path, content: &str) -> io::Result<()> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
@@ -245,8 +241,8 @@ fn write_real(path: &Path, content: &str) -> io::Result<()> {
     fs::write(path, content)
 }
 
-/// TS `ensureSymlink`: mkdir -p parent, remove any existing entry, then create a
-/// relative symlink (`relative(dirname(link), target)`).
+/// `mkdir -p` parent, remove any existing entry, then create a relative symlink
+/// (`relative(dirname(link), target)`).
 fn ensure_symlink(link_path: &Path, target_path: &Path) -> io::Result<()> {
     if let Some(parent) = link_path.parent() {
         fs::create_dir_all(parent)?;
@@ -309,7 +305,7 @@ fn sorted_dir_entries(dir: &Path) -> io::Result<Vec<String>> {
     Ok(names)
 }
 
-/// TS `copyDirFresh`: rm -rf dest, mkdir -p parent, recursive copy src -> dest.
+/// `rm -rf` dest, `mkdir -p` parent, then recursively copy src -> dest.
 fn copy_dir_fresh(src: &Path, dest: &Path) -> io::Result<()> {
     if dest.exists() || is_symlink(dest) {
         match fs::remove_dir_all(dest) {

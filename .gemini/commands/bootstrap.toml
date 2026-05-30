@@ -17,7 +17,7 @@ Then:
 - Replace the `<!-- FILL -->` markers in `.ai/context.md` with the answers; leave the
   Source-of-truth and Memory-protocol sections untouched. Set the title to the project name.
 - Optionally seed `.ai/specs/00-requirements.md`, or hand off to `/spec` for the full spec.
-- Run `bun run sync:ai` to regenerate AGENTS.md, CLAUDE.md, GEMINI.md, and every tool mirror.
+- Run `cargo xtask sync-ai` to regenerate AGENTS.md, CLAUDE.md, GEMINI.md, and every tool mirror.
 - Show the diff, remind the human to commit, and point them to `/spec → /plan → /build`.
 
 Do NOT overwrite an already-filled `.ai/context.md` without confirming. Never invent stack

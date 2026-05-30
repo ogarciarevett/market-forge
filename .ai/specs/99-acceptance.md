@@ -4,7 +4,7 @@
 - Rule: ✅ = implementation AND a passing test/evidence · ⚠️ = partial / documented gap · ❌ = absent.
 - Evidence commands: `cargo test --workspace` (32 green), `cargo clippy --workspace
   --all-targets -- -D warnings` (clean), `cargo fmt --all --check` (clean), `cargo audit`
-  (0 vulns; 1 informational unmaintained warning, see below), `bash scripts/lint-catalog.sh`
+  (0 vulns; 1 informational unmaintained warning, see below), `cargo xtask lint-catalog`
   (78 entries OK), and `market-forge new …` → generated venue `cargo build/test/bench`.
 
 ## Per-Linear-issue matrix
@@ -12,7 +12,7 @@
 | Issue | Requirement | Where | Evidence | Status |
 |-------|-------------|-------|----------|--------|
 | CLA-140 | Native baseline + dual license + OrderBook-rs attribution + fork/sync policy | `Cargo.toml`, `LICENSE-*`, `NOTICE.md`, `README.md`, `CONTRIBUTING.md`, `crates/mf-core` | builds+tests; attribution present | ⚠️ (GitHub fork + Joaquín outreach = human-only, hard rules) |
-| CLA-146 | Diagram conventions + ≤300-word style + crates inventory + lint | `docs/standards.md`, `scripts/lint-catalog.sh` | lint passes on 78 entries; `cargo audit` clean | ✅ |
+| CLA-146 | Diagram conventions + ≤300-word style + crates inventory + lint | `docs/standards.md`, `cargo xtask lint-catalog` | lint passes on 78 entries; `cargo audit` clean | ✅ |
 | CLA-136 | Architecture spike: 9 decisions + flow/codegen diagrams + inherited-vs-new + matrix | `docs/architecture.md` | doc present; decisions logged | ✅ |
 | CLA-137 | Matching engines × 10 (Mermaid + plain-language) | `docs/catalog/matching/` (10) | lint OK; FIFO+ProRata also implemented in `mf-matching` | ✅ |
 | CLA-138 | Order-book structures × 8 (+ id-index) | `docs/catalog/books/` (9) | lint OK; BTree+Bitmap implemented in `mf-book` | ✅ |
@@ -47,7 +47,7 @@
 | Typecheck (`cargo check --workspace`) | ✅ |
 | Lint (`cargo clippy -D warnings` + `cargo fmt --check`) | ✅ |
 | `cargo audit` | ✅ 0 vulnerabilities; ⚠️ 1 informational: `fxhash` unmaintained (RUSTSEC-2025-0057), transitive via `inquire` (dev CLI only), documented in `docs/standards.md` |
-| Generated agent docs in sync (`bun run check:sync`) | ✅ exit 0 |
+| Generated agent docs in sync (`cargo xtask check-sync`) | ✅ exit 0 |
 | Generator change → sample venue builds/tests/benches | ✅ |
 
 ## Verdict

@@ -1,7 +1,7 @@
 # Market Forge — Documentation & Crate Standards
 
 > Locked by CLA-146. Every algorithm-catalog entry under `docs/catalog/` MUST follow this.
-> `scripts/lint-catalog.sh` enforces the structural rules below.
+> `cargo xtask lint-catalog` enforces the structural rules below.
 
 ## 1. Diagram conventions
 

@@ -1,18 +1,18 @@
-//! Pure text transforms, mirroring the TS generator exactly.
+//! Pure text transforms for the agent-doc generator.
 //!
-//! Parity notes:
-//! - JS `String.prototype.trim()` / `trimEnd()` strip the Unicode "white space"
-//!   set plus line terminators. Our sources are ASCII, so trimming the standard
-//!   ASCII whitespace set (matched by `char::is_whitespace`, which is a superset)
-//!   reproduces the same result. We mirror `trim` (both ends) and `trimEnd`.
-//! - The frontmatter regex is `^---\n([\s\S]*?)\n---\n?([\s\S]*)$`.
+//! Behavioral notes:
+//! - `trim` / `trim_end` strip the Unicode whitespace set (via `char::is_whitespace`)
+//!   from both ends / the trailing end respectively. Sources are ASCII, so this is the
+//!   plain ASCII-whitespace trim.
+//! - Frontmatter is matched by the rule `^---\n([\s\S]*?)\n---\n?([\s\S]*)$`
+//!   (non-greedy first group).
 
-/// JS `String.prototype.trimEnd()` — strip trailing whitespace only.
+/// Strip trailing whitespace only.
 pub fn trim_end(s: &str) -> &str {
     s.trim_end_matches(|c: char| c.is_whitespace())
 }
 
-/// JS `String.prototype.trim()` — strip leading and trailing whitespace.
+/// Strip leading and trailing whitespace.
 pub fn trim(s: &str) -> &str {
     s.trim_matches(|c: char| c.is_whitespace())
 }
@@ -23,15 +23,15 @@ pub struct Frontmatter {
     pub body: String,
 }
 
-/// Mirror of the TS `splitFrontmatter`:
-/// regex `^---\n([\s\S]*?)\n---\n?([\s\S]*)$` (non-greedy first group).
-/// On no match: `{ description: "", body: text.trim() }`.
+/// Pull the YAML-frontmatter `description` and the markdown body, using the rule
+/// `^---\n([\s\S]*?)\n---\n?([\s\S]*)$` (non-greedy first group).
+/// On no match: empty description, body = `text.trim()`.
 pub fn split_frontmatter(text: &str) -> Frontmatter {
     if let Some((fm, body_raw)) = match_frontmatter(text) {
         let mut description = String::new();
         for line in fm.split('\n') {
             if let Some(rest) = line.strip_prefix("description:") {
-                // TS: /^description:\s*(.*)$/ — trim leading \s, then trim(), strip quotes.
+                // `^description:\s*(.*)$` — drop leading whitespace, trim, strip quotes.
                 let val = rest.trim_start_matches(|c: char| c.is_whitespace());
                 description = strip_surrounding_quotes(trim(val));
             }
@@ -48,8 +48,8 @@ pub fn split_frontmatter(text: &str) -> Frontmatter {
     }
 }
 
-/// Apply the frontmatter regex semantics: require the literal `---\n` prefix,
-/// find the first `\n---` close, then an optional single `\n`, and return
+/// Apply the frontmatter rule: require the literal `---\n` prefix, find the first
+/// `\n---` close, then an optional single `\n`, and return
 /// `(frontmatter_inner, body_remainder)`.
 fn match_frontmatter(text: &str) -> Option<(&str, &str)> {
     let after_open = text.strip_prefix("---\n")?;
@@ -62,7 +62,7 @@ fn match_frontmatter(text: &str) -> Option<(&str, &str)> {
     Some((fm, body))
 }
 
-/// TS: `s.replace(/^["']|["']$/g, "")` — remove a single leading and a single
+/// Rule `s.replace(/^["']|["']$/g, "")` — remove a single leading and a single
 /// trailing quote (`"` or `'`) independently.
 fn strip_surrounding_quotes(s: &str) -> String {
     let mut out = s;
@@ -75,13 +75,13 @@ fn strip_surrounding_quotes(s: &str) -> String {
     out.to_string()
 }
 
-/// TS `tomlBasic`: `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`.
+/// Encode `s` as a TOML basic string: escape `\` then `"`, and wrap in double quotes.
 pub fn toml_basic(s: &str) -> String {
     let escaped = s.replace('\\', "\\\\").replace('"', "\\\"");
     format!("\"{escaped}\"")
 }
 
-/// TS `tomlMultiline`: `"""\n${s.replace(/\\/g, "\\\\").replace(/"""/g, '\\"\\"\\"')}\n"""`.
+/// Encode `s` as a TOML multiline string: escape `\` and any `"""`, and wrap in `"""…"""`.
 pub fn toml_multiline(s: &str) -> String {
     let escaped = s.replace('\\', "\\\\").replace("\"\"\"", "\\\"\\\"\\\"");
     format!("\"\"\"\n{escaped}\n\"\"\"")

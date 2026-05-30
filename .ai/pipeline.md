@@ -1,7 +1,7 @@
 # Agent lifecycle (GENERIC — reusable across projects)
 
 > The generic addyosmani/agent-skills lifecycle. Project-specific contract lives in
-> `.ai/context.md`. `bun run sync:ai` assembles both into the generated entry files.
+> `.ai/context.md`. `cargo xtask sync-ai` assembles both into the generated entry files.
 
 ## Per-feature pipeline (MANDATORY)
 For ANY non-trivial change a developer agent makes, follow the
@@ -42,7 +42,7 @@ Repeat per slice until the feature is complete.
     keep the `.ai/` source-of-truth honest. It diffs **code-reality vs `.ai/context.md` +
     `.ai/specs/`** across five dimensions and writes proposed patches to
     `.ai/specs/97-evolution.md`. It PROPOSES, never applies — a human reviews and applies,
-    then re-runs `bun run sync:ai`. On **Claude Code** it accelerates with a `/graphify`
+    then re-runs `cargo xtask sync-ai`. On **Claude Code** it accelerates with a `/graphify`
     knowledge graph + the `evolve-scan` dynamic Workflow; **other CLIs** (and Claude Code
     without graphify) fall back to a direct scan + native sub-agents. Same report either way.
 
