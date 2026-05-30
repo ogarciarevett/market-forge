@@ -1,0 +1,14 @@
+[package]
+name = "xtask"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.94"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ogarciarevett/market-forge"
+authors = ["Omar Garcia <ogarciarevett@gmail.com>"]
+publish = false
+description = "Dev-only task runner: Rust port of scripts/sync-ai-docs.ts (byte-parity)."
+
+[[bin]]
+name = "xtask"
+path = "src/main.rs"
