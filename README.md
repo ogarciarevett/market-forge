@@ -1,24 +1,18 @@
 <div align="center">
 
-```
-███╗   ███╗ █████╗ ██████╗ ██╗  ██╗███████╗████████╗   ███████╗ ██████╗ ██████╗  ██████╗ ███████╗
-████╗ ████║██╔══██╗██╔══██╗██║ ██╔╝██╔════╝╚══██╔══╝   ██╔════╝██╔═══██╗██╔══██╗██╔════╝ ██╔════╝
-██╔████╔██║███████║██████╔╝█████╔╝ █████╗     ██║      █████╗  ██║   ██║██████╔╝██║  ███╗█████╗
-██║╚██╔╝██║██╔══██║██╔══██╗██╔═██╗ ██╔══╝     ██║      ██╔══╝  ██║   ██║██╔══██╗██║   ██║██╔══╝
-██║ ╚═╝ ██║██║  ██║██║  ██║██║  ██╗███████╗   ██║      ██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗
-╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝   ╚═╝      ╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
-```
+<img src="assets/market-forge.svg" width="180" alt="market-forge: an anvil with opposing order bars and a spark">
 
-# 🔨 Market Forge
+# market-forge
 
-**Answer a few questions about your matching engine. Get a compiling, testable, benchable Rust venue.**
+**Generate a Rust matching engine from your design choices.**
 
-![Rust](https://img.shields.io/badge/Rust-1.94-CE412B?style=for-the-badge&logo=rust&logoColor=white)
-![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue?style=for-the-badge)
-![tests](https://img.shields.io/badge/tests-32_green-22c55e?style=for-the-badge)
-![catalog](https://img.shields.io/badge/algorithm_catalog-78-8b5cf6?style=for-the-badge)
+[![MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT_OR_Apache--2.0-4DB6AC)](LICENSE-MIT) [![Rust 1.94](https://img.shields.io/badge/language-Rust_1.94-CE412B)](https://www.rust-lang.org/) [![CLI + SDK](https://img.shields.io/badge/interface-CLI_%2B_SDK-63D6B0)](crates/)
+
+Works with **Rust** · **Cargo**
 
 </div>
+
+---
 
 > **Design lineage / attribution.** Market Forge's default concurrency template (the LMAX/DMAX
 > Disruptor) and initial order-book design are inspired by
