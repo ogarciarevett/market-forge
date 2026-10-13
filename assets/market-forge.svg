@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title">
 <title id="title">market-forge: an anvil with opposing order bars and a spark</title>
 <path d="M25 94h183v22h-34c-13 0-21 9-21 22v20l28 27v14H67v-14l29-27v-20c0-13-8-22-21-22H53Z" fill="#17283B" stroke="#F3F0E7" stroke-width="8" stroke-linejoin="round"/>
-<path d="M72 107h37v11H84v11H72Zm65 0h25v11h-37v11h37v-11h-25Z" fill="#63D6B0"/>
-<path d="M131 107h31v11h-20v11h-11Z" fill="#F27F68"/>
+<path d="M68 100h46v10H68Z" fill="#63D6B0"/>
+<path d="M126 100h46v10h-46Z" fill="#F27F68"/>
 <path d="m156 28 7 19 19 7-19 7-7 19-7-19-19-7 19-7Z" fill="#F27F68"/>
 <path d="m106 55 7 8m72 19 9-4" fill="none" stroke="#F3F0E7" stroke-width="7" stroke-linecap="round"/>
 <path d="M77 199h94" stroke="#63D6B0" stroke-width="8" stroke-linecap="round"/>
